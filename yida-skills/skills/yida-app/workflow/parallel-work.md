@@ -19,7 +19,7 @@
 
 - 用户确认计划或主题，且主色、导航明暗与相关 token 已确定，即可开始生成应用主题 CSS；不等待表单字段、页面源码或页面发布。已有符合当前确认版本的 CSS 直接复用。
 - 取得真实 `appType` 后，表单创建与主题生成/上传并行；页面按已确认的设计和 token 契约开发，不等待主题上传结束。业务资源仍遵守已有的方案确认和资源创建条件。
-- `appType + 当前已确认的 CSS + 已确定的导航配置` 就绪后，立即执行一次 `update-app --theme-file`，同步 `colour=custom`、从 CSS 提取的 `themeColor`、`customThemeStyle`、`navTheme`、`layoutDirection`、Logo 来源及导航显隐。其中已确认的应用导航隐藏通过 `--hide-app-nav` 同步保存，不等待页面创建或开发完成。页面级隐藏仅用于已规划独立入口或应用级自绘导航的页面，取得其真实 `formUuid` 后执行 `update-form-config` 并回读；平台导航管理页保留导航，不加入隐藏队列。配置可与源码开发并行。
+- 先按 [旧主题注入与停用规则](../../yida-design/references/application-style-library.md#旧主题应用的样式作用域与确认) 核对服务端主题能力；旧主题或能力未知时优先使用页面局部样式，未取得目标应用与 CSS 范围的明确注入确认不得上传。符合注入条件且 `appType + 当前已确认的 CSS + 已确定的导航配置` 就绪后，立即执行一次 `update-app --theme-file`，同步 `colour=custom`、从 CSS 提取的 `themeColor`、`customThemeStyle`、`navTheme`、`layoutDirection`、Logo 来源及导航显隐。其中已确认的应用导航隐藏通过 `--hide-app-nav` 同步保存，不等待页面创建或开发完成。页面级隐藏仅用于已规划独立入口或应用级自绘导航的页面，取得其真实 `formUuid` 后执行 `update-form-config` 并回读；平台导航管理页保留导航，不加入隐藏队列。配置可与源码开发并行。
 - 同一应用的基础设置由主流程单一任务写入；主题上传、导航配置和其他设置更新不能并发覆盖。表单/页面资源的独立写入可继续并行。
 - 生成 CSS 的任务独占主题文件；上传使用已完整写入的版本，不上传仍在修改的文件。主题确认内容变化后，只重做受影响的 CSS 和设置同步，不让旧任务覆盖新版本。
 - 主题同步失败只重试主题分支，其他资源开发继续；视觉验收与最终交付必须汇合 `themeVerification.verified=true` 的结果，不能在主题未生效时报告视觉完成。不要把汇合检查误作“到收尾时才开始更新主题”。
@@ -57,7 +57,7 @@
 `design-plan init` 返回 `parallelTasks` 和两个片段文件：
 
 - `business.json`：init 已预填业务骨架，业务任务必须先读后写，保留 base；facts 只能填写 overview、dataModels、businessFlows、pages 和可选 execution，禁止加入 visualStyle。一次补齐所有普通表单的 sampleDataPlan（不造数写 skipReason）和所有自定义页面的 permissionSummary，完成后设 ready=true。可选 meta 仅填写 businessDomain、experienceTopology。
-- `visual.json`：init 复用 `visualSelection`，将已选风格、主色和导航写入 facts.visualStyle。选择及所有自定义页的具体设计完整后，才设 `ready=true`；否则返回 `visual-design` 任务。按任务依赖读取业务页面，补齐 pageApplications；主题提供公共组件规则，不能代替逐页设计。
+- `visual.json`：init 复用 `visualSelection`，将已选风格、主色和导航写入 facts.visualStyle。选择及所有自定义页的具体设计完整后，才设 `ready=true`；否则返回 `visual-design` 任务补设计细节；这不表示需要重选风格，PRD 完成后也不再比较候选或询问风格。按任务依赖读取业务页面，补齐 pageApplications；主题提供公共组件规则，不能代替逐页设计。
 
 两个文件的 base 由 CLI 生成，保留原值；任务读取同一份需求、草稿和主题上下文。业务片段完成后保持稳定，变更时通知视觉任务重新核对页面设计。
 

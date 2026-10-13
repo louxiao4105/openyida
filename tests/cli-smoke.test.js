@@ -258,10 +258,13 @@ describe('CLI offline smoke', () => {
     expect(output).not.toContain('读取登录态');
   });
 
-  test.each([[], ['--explicit-request'], ['--confirm']].map(flags => ({ flags })))('theme upgrade rejects incomplete approval before login: $flags', ({ flags }) => {
+  // Eligibility comes before approval/preparation, so offline calls require authentication first.
+  test.each([[], ['--explicit-request'], ['--confirm'], ['--explicit-request', '--confirm'],
+    ['--prepare'], ['--explicit-request', '--prepare', '--output-dir', 'unused-theme-backup']]
+    .map(flags => ({ flags })))('theme upgrade requires login before checking eligibility: $flags', ({ flags }) => {
     const result = runAny(['upgrade-app-theme', 'APP_TEST', ...flags, '--json']);
     expect(result.status).toBe(1);
-    expect(JSON.parse(result.jsonOutput)).toMatchObject({ success: false, errorCode: 'APP_THEME_CONFIRMATION_REQUIRED' });
+    expect(JSON.parse(result.jsonOutput)).toMatchObject({ success: false, errorCode: 'TOKEN_AUTH_REQUIRED' });
   });
 
   test('resource command --help probes exit successfully without requiring login', () => {
@@ -615,6 +618,7 @@ describe('CLI offline smoke', () => {
       'formula.evaluate',
     ]));
     expect(parsed.summary.ask_command_ids).toEqual([
+      'app-theme.restore',
       'upgrade-app-theme',
       'app-offline',
       'connector.delete',
@@ -1721,6 +1725,7 @@ describe('CLI offline smoke', () => {
     ]));
     expect(parsed.commands.allow_command_ids).toContain('create-app');
     expect(parsed.commands.ask_command_ids).toEqual([
+      'app-theme.restore',
       'upgrade-app-theme',
       'app-offline',
       'connector.delete',
@@ -2643,7 +2648,12 @@ test('command and agent navigation policies align with AI intake decisions', () 
     expect(route.navigation_policy).not.toContain('offer exactly two');
     expect(route.design_mode_policy).toBe(workflow.design_mode_policy);
     expect(route.design_mode_policy).toContain('Fast and Plan share one three-direction visual generation rule');
-    expect(route.design_mode_policy).toContain('generate exactly three directions and use ask_human');
+    expect(route.design_mode_policy).toContain('generate exactly three directions and follow visual_decision_policy.themeSelection');
+    expect(route.design_mode_policy).toContain('use ask_human on every host');
+    expect(route.design_mode_policy).not.toContain('use ask_human for the style choice');
+    const catalog = JSON.parse(runOk(['design-plan', 'catalog', '--json']));
+    expect(catalog.themeSelection).toEqual(route.visual_decision_policy.themeSelection);
+    expect(catalog.themeSelection.qwenwork).toMatchObject({ activeToolId: 'qwenwork', tool: 'qoder_show_widget', purpose: 'preview_only', response: 'none' });
     expect(route.design_mode_policy).not.toContain('Confirm unresolved navigation');
     expect(route.product_design_policy).toBe(workflow.product_design_policy);
     expect(route.product_design_policy).toContain('Fast, Plan and single-page design share yida-design/templates/design-themes');
@@ -2703,6 +2713,26 @@ test('plain user-facing guidance is available from manifest and both agent capab
   expect(fs.existsSync(path.join(ROOT, policy.reference))).toBe(true);
   const visual = manifest.summary.core_workflows.full_app_build.visual_decision_policy;
   expect(visual).toEqual(require('../lib/design-plan/visual-policy').getVisualDecisionPolicy());
+  const selection = visual.themeSelection;
+  expect(selection.qwenwork.prepareCommand).toBe('openyida sample yida-design theme-selector --json');
+  expect(selection.qwenwork.widgetPathSource).toContain('relative to the host skills root');
+  expect(selection.interactionOrder).toMatchObject({
+    sequence: ['prepare_known_candidates', 'optional_requested_preview', 'batched_ask_human_if_needed', 'confirm_plan_if_required'],
+    maxPendingInteractions: 1,
+    batchStyleWithOtherQuestions: true,
+  });
+  const [orderFile, orderAnchor] = selection.interactionOrder.reference.split('#');
+  expect(fs.readFileSync(path.join(ROOT, orderFile), 'utf8')).toContain(`## ${orderAnchor}`);
+  expect(manifest.summary.core_workflows.full_app_build.design_mode_policy).toContain('themeSelection.interactionOrder');
+  expect(selection.reuse.checkBeforePresentation).toEqual([
+    'current_user_reply', 'brief.visualSelection', 'visualStyle.internal.selectedTheme', 'design.md themeProfile.sourceThemeId',
+  ]);
+  expect(selection.reuse.policy).toContain('First-instinct comparison runs only before an initial choice');
+  expect(selection.reuse.policy).toContain('fill missing design details without reopening the chooser');
+  expect(selection).not.toHaveProperty('currentSelection');
+  const [reuseFile, reuseAnchor] = selection.reuse.reference.split('#');
+  expect(fs.readFileSync(path.join(ROOT, reuseFile), 'utf8')).toContain(`## ${reuseAnchor}`);
+  expect(JSON.parse(runOk(['design-plan', 'catalog', '--json'])).themeSelection).toEqual(selection);
   expect(summary.full_app_artifact_route.visual_decision_policy).toEqual(visual);
   expect(capabilities.commands.core_workflows.full_app_build.visual_decision_policy).toEqual(visual);
   expect(capabilities.recommended.default_full_app_workflow.visual_decision_policy).toEqual(visual);
@@ -2807,6 +2837,9 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     const contract = require('../yida-skills/skills/yida-design/templates/design-themes/basic-tokens.json');
     const design = fs.readFileSync(path.join(dir, 'design.md'), 'utf8');
     const tokens = readDesignTokens(design);
+    const { parseDesignDocument } = require('../lib/design/document');
+    const metadata = parseDesignDocument(design).metadata;
+    const customTokens = new Set(Object.values(metadata.tokens['custom-page']).flatMap(group => Object.keys(group)));
     const template = fs.readFileSync(path.join(ROOT, 'yida-skills/skills/yida-design/references/theme/app-custom-theme-template.css'), 'utf8');
     const platformTokens = new Set([...template.matchAll(/(--[\w-]+)\s*:/g)]
       .map(match => match[1]));
@@ -2815,10 +2848,10 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     platformTokens.add('--input-hover-bg-color');
     expect(Object.keys(tokens)).toEqual(expect.arrayContaining(Object.values(contract.groups).flat()));
     expect(Object.keys(tokens).filter(name => !Object.values(contract.groups).flat().includes(name))
-      .every(name => name.startsWith('--oyd-') || platformTokens.has(name))).toBe(true);
+      .every(name => customTokens.has(name) || platformTokens.has(name))).toBe(true);
     expect(platformTokens.has('--pod-nav-unknown-token')).toBe(false);
-    for (const [name, value] of Object.entries(contract.fixedValues)) {
-      expect(tokens[name]).toBe(value);
+    for (const name of ['--color-fill1-10', '--color-text1-5']) {
+      expect(tokens[name]).toBe(contract.fixedValues[name]);
     }
     const selectedShadow = 'inset 0 -3px 0 var(--color-brand1-6)';
     const result = JSON.parse(runOk(['design-plan', 'patch', input,
@@ -2835,13 +2868,16 @@ test('Plan CLI and design-file sample work locally without a login', () => {
     expect(readDesignTokens(patchedDesign)['--pod-nav-menu-item-selected-shadow']).toBe(selectedShadow);
     expect(patchedDesign).toContain(`| 选中项阴影 | --pod-nav-menu-item-selected-shadow | ${selectedShadow} |`);
     expect(css).toContain(`--pod-nav-menu-item-selected-shadow: ${selectedShadow};`);
-    const globalRules = topLevelRules(css).filter(rule => rule.selector.split(',').map(x => x.trim()).includes(':root'));
-    expect(globalRules).toHaveLength(1);
-    for (const tone of ['light', 'dark', 'white', 'gray']) {
-      expect(globalRules[0].selector).toContain(`.pod-premium.nav-${tone}`);
-      expect(globalRules[0].body).toContain(`--pod-shell-theme-bg-color: ${tokens['--pod-shell-theme-bg-color']};`);
-    }
-    expect(css).not.toMatch(/\.pod-premium\.(?:is|nav)-(?:light|dark|white|gray)\s*\{/);
+    // Named themes retain their authored scopes; only the requested project
+    // tokens change. The shared skeleton's flattened scopes are not the contract.
+    const sourceId = metadata.themeProfile.sourceThemeId;
+    const paired = fs.readFileSync(path.join(ROOT,
+      `yida-skills/skills/yida-design/templates/design-themes/${sourceId}/app_theme.css`), 'utf8');
+    const selectors = text => topLevelRules(text).map(rule => rule.selector.replace(/\s+/g, ' ').trim());
+    expect(selectors(css)).toEqual(selectors(paired));
+    expect(css).toContain(`openyida-theme-source: ${sourceId}`);
+    runOk(['sample', 'yida-design', 'app-theme', '--design-file', path.join(dir, 'design.md'), '--output', cssPath]);
+    expect(fs.readFileSync(cssPath, 'utf8')).toBe(css);
   } finally {fs.rmSync(dir, { recursive: true, force: true });}
 });
 
@@ -2868,4 +2904,15 @@ test('QwenWork declares Bash background separately from synchronous Agent in bot
       execution: { selected_mode: 'background_shell', shell: { foregroundWork: expect.arrayContaining(['visual_image_review']) } },
     });
   }
+});
+
+
+test('catalog and manifest expose the same conditional pop art eligibility', () => {
+  const result = JSON.parse(runOk(['design-plan', 'catalog', '--json']));
+  const manifest = JSON.parse(runOk(['commands', '--json']));
+  const constraint = result.themeSelection.eligibility['app-pop'];
+  expect(constraint).toMatchObject({ defaultEligible: false, allowedContexts: ['explicit-request', 'showcase'] });
+  expect(result.themes.find(theme => theme.themeId === 'app-pop').selectionEligibility).toEqual(constraint);
+  expect(manifest.summary.core_workflows.full_app_build.visual_decision_policy.themeSelection.eligibility['app-pop']).toEqual(constraint);
+  expect(manifest.summary.core_workflows.full_app_build.design_mode_policy).toContain('batch ready independent style, scope and mode questions in one ask_human call');
 });

@@ -7,6 +7,8 @@ description: 表单页面创建与更新；可创建 19 种业务字段、Divide
 
 > 资源边界：本技能处理普通表单创建与更新。目标不明时先只读确认或询问用户。
 
+已有表单仅美化时，先进入 [ui-improve](../yida-design/sub_skill/ui-improve/SKILL.md)，确认视觉方案并完成可恢复备份后才改视觉属性；保留字段、校验、规则、数据源和动作，不用重新创建或重建组件树实现美化。自定义页 UI 优化也先走该流程，再按原运行时交接页面开发与发布。
+
 ## Resource-First create/update 判定
 
 执行本技能前必须先解析 app/form resource context：
@@ -14,7 +16,7 @@ description: 表单页面创建与更新；可创建 19 种业务字段、Divide
 - 已有目标 `formUuid`、表单 URL、bound form，或 workspace cache/config 中可确认的表单时，字段结构诉求默认走 update/patch/rule/bind-datasource 模式；不要再 create 同名或同类表单。
 - bound form/page 只是默认候选，不是锁定目标；如果当前会话绑定表单或页面 A，但用户本轮明确要求修改 B 的字段，必须先解析 B 对应的表单 `formUuid`。B 能唯一解析时改 B；B 无法唯一解析或字段归属不清时问用户；禁止默认改 A。
 - 已有目标 app 但缺少业务数据表，且用户明确要求“增加客户表 / 新建订单表 / 新增数据收集入口”等，才使用 create 模式创建新表单。
-- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，改走页面源码开发和 `yida-publish-page`；不要创建表单。
+- 用户给页面 URL 或自定义页面 `formUuid` 且诉求是优化页面 UI 时，先走 `yida-design` 的 ui-improve 确认和备份，再交给页面源码开发和 `yida-publish-page`；不要创建表单。
 - 多个表单候选时按根技能来源优先级选择；同级冲突、字段目标不明或无法判断要改哪张表时才问用户。
 
 ## 严格禁止 (NEVER DO)
@@ -183,6 +185,8 @@ openyida create-form create <appType> <formTitle> <fieldsJsonOrFile> [--layout s
 `url` 是兼容字段，与 `formUrl` 表示同一表单入口；`appUrl` 表示应用工作台入口。普通表单保存成功后进入可用状态，自定义展示页使用 `publish-page` 生命周期。终态交付按用户请求的层级选择对应权威入口和 `resourceType`/`resourceId`：应用级使用 `appUrl`、`app_home`、`appType`，表单级使用 `formUrl`、`form`、`formUuid`。
 
 完整应用模式下的下一步：
+
+创建成功必须经过保存后及导航更新后的真实 schema 回读核验。若返回 `CREATE_FORM_CREATE_READBACK_MISMATCH` 或读取失败，保留返回的 `formUuid`，按下方半成功恢复流程处理，不能重跑 create 生成第二张表单。
 
 1. 将 `formUuid`、字段摘要和字段 JSON 路径写入 `.cache/<项目名>-schema.json`。
 2. 对需要作为页面列表、看板或详情数据源的核心普通表单，加载 `yida-data-management`。

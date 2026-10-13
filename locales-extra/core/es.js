@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
     desc_get: 'Read frontend and management runtime entries',
     desc_set: 'Register application entries with partial update and readback',
@@ -24,6 +25,7 @@ module.exports = {
     repair_page_bindings: 'Haga corresponder pageApplications de visual.json con customPageDetails de business.json uno a uno, sin formularios nativos. visualMemoryApplications debe ser un arreglo; use [] si no corresponde ninguno. Conserve el borrador, corrija los campos indicados y repita el comando original. No elimine el directorio ni ejecute init de nuevo.',
   },
   design_document: {
+    confirmation_snapshot_conflict: 'Confirmation snapshot {0} conflicts with its content address; the file was not overwritten.',
     update_conflict: "No se puede actualizar {0} ({1}): el contenido entra en conflicto con la última versión generada. Revise esta sección, concilie el cambio local con los datos del plan y vuelva a intentarlo. No se guardó ningún archivo.",
     theme_css_invalid: 'El CSS del tema contiene un delimitador, una cadena o un comentario sin cerrar o mal emparejado cerca de la línea {0}. Corrígelo e inténtalo de nuevo.',
     theme_css_unresolved: 'El token CSS del tema {0} aún contiene un marcador de plantilla o una instrucción para generar colores. Complete design.md, ejecute openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> y suba el archivo generado. No basta con reemplazar PRIMARY_COLOR.',
@@ -793,6 +795,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    create_readback_mismatch: 'The created form does not contain all requested fields. Recover this existing form ID; do not create another form.',
     divider_type_invalid: 'Estilo de separador no compatible: {0}. Valores admitidos: {1}',
     batch_invalid: 'Lote de formularios no válido; revise los detalles',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
@@ -950,6 +953,7 @@ module.exports = {
     failed: '  ❌ Error al crear: {0}'
   },
   common: {
+    auth_identity_changed: 'Authentication identity changed during preflight; no write was issued.',
     http_status: '  HTTP status: {0}',
     http_response: '  HTTP response: {0}',
     response_body: '  Response body: {0}',
@@ -1068,6 +1072,10 @@ module.exports = {
     err_open_url_empty: 'La ruta openUrl no puede estar vacía: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Un colour predefinido no se puede combinar con CSS o themeColor. Usa --colour custom u omite --colour.',
     custom_theme_color_required: 'colour=custom requiere un archivo de tema o themeColor válido. Usa --theme-file o --theme-color.',
     theme_not_persisted: 'No se pudieron confirmar los ajustes del tema tras guardarlos. Revisa themeVerification y reintenta con update-app <appType> --theme-file <css>; no vuelvas a crear la aplicación.',
@@ -2131,3 +2139,7 @@ module.exports.sample_options = {
 
 module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
 module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;
+
+module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
+module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
+module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;

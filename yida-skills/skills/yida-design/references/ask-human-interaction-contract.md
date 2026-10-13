@@ -110,13 +110,13 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 
 ## 逻辑动作与宿主适配
 
-技能文档统一使用 `ask_human` 表示“向用户提问并等待回答”的逻辑动作。宿主按当前可用能力完成适配：
+技能文档使用 `ask_human` 表示“向用户提问并等待回答”的逻辑动作。所有环境都用它收集风格选择；只有用户明确要求时才按[预览规则](theme-selection.md#选择时展示名称与效果图)展示卡片或图文，预览不提交答案。按[交互顺序](theme-selection.md#交互顺序)将已准备好的风格题与当前必要问题合并到同一次问答，同一任务最多一个待答交互：
 
 1. 使用当前宿主实际可用、当前模式允许的结构化工具；同步工具受限时优先使用可用且允许的异步工具。不能因为工具存在就调用模式禁止的能力。
 2. 无可用工具或允许的工具均失败时，按宿主规则在对话中补问，不伪造工具调用或回答。关键问题未答时只推进不依赖答案的工作。
 3. 工具名称与参数以实际 schema 为准。下面的逻辑字段用于表达意图，不强行传入宿主不支持的字段；多选能力不存在时使用用途清楚的功能组合或自由输入，不伪造 multi_choice。
 4. 异步返回、默认勾选、未回复和超时都不是答案。收到有效回答后才写回对应业务字段；用户委托时保留依据，AI 决定不记成用户选择。
-5. 一题一个决定。工具已有自由输入时不另设“其他”，不为问题数量限制合并模式、功能、风格等无关决定。首轮通常 1–3 题，删去低价值扩展，不机械拆轮。
+5. 一题一个决定，同一次调用可包含多个独立问题。风格候选已准备好时与需求、模式题同轮提交；只因真实答案依赖或宿主限制拆分，不机械追加风格轮次。工具已有自由输入时不另设“其他”，不为问题数量限制合并模式、功能、风格等无关决定。首轮通常 1–3 题，删去低价值扩展，不机械拆轮。
 
 ## 交互类型
 
@@ -125,11 +125,17 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 | 搭建方式 | `single_choice` | 按需求详细程度提供 PRD 是/否或 Fast/Plan | brief 的 `intake.designMode` |
 | 核心功能 | `multi_choice` | 功能名称＋一句用途，说明谁做什么；按宿主能力适配 | brief 的 `coreFunctions/businessObjects/userTasks` |
 | 关键用法 | `single_choice` | 能改变范围或入口判断的实际使用方式 | brief 的 `userTasks/entryRecommendation` |
-| 应用设计风格 | `single_choice` | 面向业务的风格选项与自定义偏好 | brief 的 `visualSelection` |
+| 应用设计风格 | `single_choice` | 风格名称＋适用说明，用户明确要求预览时，有对应效果图再附图，支持自定义偏好 | brief 的 `visualSelection` |
 | 来源补齐         | `free_text`                                    | 可读正文、链接或附件         | `meta.source`                 |
 | 最新搭建计划确认 | `confirm`                                      | 当前版本、确认生成、继续调整 | `meta.planState`              |
+| 已有资源美化方案确认 | `confirm` | 当前视觉方案、开始美化、继续调整、暂不修改 | ui-improve manifest 的 revision 与确认记录 |
+| 美化效果验收 | `single_choice` | 实际效果、保留或不满意恢复 | ui-improve manifest 的验收与恢复记录 |
 
 逻辑问题按以下信息组织；仅向实际工具传入 schema 支持的字段：
+
+风格交互先遵守[已选风格只确认一次](theme-selection.md#已选风格只确认一次)：已有有效选择就复用，不因补齐方案或切换宿主工具再次提问。
+
+风格问题默认只列名称和一句说明。用户明确要求预览时，按[预览规则](theme-selection.md#选择时展示名称与效果图)展示标题和示例图；宽屏每行 4–6 款，行数不限，窄屏减少列数。预览只供查看，回答仍由同一轮 `ask_human` 收集。
 
 - `interactionId`：当前交互唯一标识。
 - `questionType`：交互类型。
@@ -139,12 +145,16 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 - `allowCustom`：是否允许用户补充自定义答案。
 - `writeBackPath`：答案写回位置。
 
-需要让用户查看 workspace 产物后再回答时，同一次 `ask_human` 还必须携带：
+下面的附件与版本约束用于搭建、美化方案等执行审批。用户主动索取的风格效果参考不属于执行审批，可先独立展示，再沿用同一轮风格问题收集选择。
 
-- `attachments`：待查看文件列表；workspace 文件使用 `{ "name": "搭建方案", "path": "prd/<项目名>/build-plan.html" }`。路径必须位于当前项目工作区，不能传运行时内部路径或外部绝对路径。
+需要让用户查看待批准的 workspace 产物后再回答时，同一次 `ask_human` 还必须携带：
+
+- `attachments`：待查看文件列表；workspace 文件使用 `{ "name": "搭建方案", "path": "prd/<项目名>/build-plan-<content-sha256>.html" }`。路径必须位于当前项目工作区，不能传运行时内部路径或外部绝对路径。
 - `revision`：本次问题绑定的事实版本。宿主提交回答时必须原样回传；版本已变化时拒绝旧回答并重新展示最新版本。
 
 附件、问题与 `revision` 是一个原子交互。不得先发普通文本附件、再单独调用 `ask_human`，也不得只在问题文案中写文件路径；否则实时界面和历史回放无法可靠证明用户确认的是哪一版方案。
+
+已有资源美化使用 [ui-improve](../sub_skill/ui-improve/SKILL.md) 的视觉方案和验收流程，不使用下文首次搭建的固定两选项 payload。宿主缺少附件或 revision 能力时，仅按该流程的降级契约在同次问题提供不可变方案链接，并保存真实交互与版本关联；不得伪造附件、回答或版本字段，未取得明确同意不得写入。首次搭建的原子附件契约保持不变。
 
 ## 首次搭建确认
 
@@ -152,18 +162,18 @@ Fast / Plan 是面向用户的模式名称，仅在首轮澄清后的模式路�
 
 首轮澄清结束后，编排按 [模式路由](design-mode.md) 处理尚未明确的执行方式，并按 [导航决策](navigation-decision.md) 由 AI 确定平台导航或自定义导航及布局。导航没有独立选择或确认轮，用户主动指定时沿用；Plan 将 AI 建议随整体方案展示。`intake.confirmed` 仅表示需求澄清完成，不表示方案获批。
 
-视觉方向与后续映射统一写入 brief 的 `visualSelection`；Plan 没有明确完整视觉方向时，必须使用“应用设计风格”交互展示共用规则生成的三套候选。未选候选不进入有效范围，失效推导同步移除。
+视觉方向与后续映射统一写入 brief 的 `visualSelection`；Plan 仅在尚无有效选择且没有明确完整视觉方向时，才使用“应用设计风格”交互展示共用规则生成的三套候选。未选候选不进入有效范围，失效推导同步移除。
 
 ## 搭建计划展示
 
 Plan Design 完成当前版本后，按以下顺序与用户交互：
 
 1. 在会话中使用“搭建方案”或“当前方案”，给出 3-7 条业务摘要。用户可见的 PRD / HTML 标题、摘要、附件名称和确认问题都不展示修订序号或原始 `meta.revision`；修订标识仅保留在内部元数据和确认字段中。
-2. 在“最新搭建计划确认”的同一次 `ask_human` 中，通过 `attachments` 展示可打开的 `prd/<项目名>/build-plan.html`，并以 `revision` 绑定当前 `meta.revision`。
+2. 在“最新搭建计划确认”的同一次 `ask_human` 中，通过 `attachments` 原样使用 CLI 返回的 `confirmation.attachments` 展示可打开的内容快照，并以 `revision` 绑定当前 `meta.revision`。
 3. 结构化交互成功创建后将 `meta.planState.presentedRevision=meta.revision` 写回源 JSON，不再物化；awaiting_confirmation 在生成前写入。
 4. 提供“确认并开始搭建”和“继续调整”两个选择，并等待用户回答。
 
-`build-plan.html` 不承载对话控件或确认按钮；用户在会话中完成确认。
+`build-plan.html` 是可更新的编辑产物；确认附件必须使用 `materialize` 或 `patch --materialize` 返回的 `confirmation.attachments`（路径等于 `outputs.confirmationHtml`），不能自行拼接 canonical 路径或覆盖快照。快照包含最终合并后的 HTML，本地补充和素材变化也会产生新内容地址。HTML 不承载对话控件或确认按钮；用户在会话中完成确认。
 
 最终确认是一个 `single_select` 语义问题。它只有下面这一份可调用 schema；顶层字段集合固定为 `question`、`title`、`options`、`attachments`、`revision`、`submitLabel`。将路径和 `{revision}` 替换为本次 materialize 返回的真实值：
 
@@ -188,7 +198,7 @@ Plan Design 完成当前版本后，按以下顺序与用户交互：
   "attachments": [
     {
       "name": "build-plan.html",
-      "path": "prd/<项目名>/build-plan.html"
+      "path": "prd/<项目名>/build-plan-<content-sha256>.html"
     }
   ],
   "revision": "{revision}",

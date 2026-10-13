@@ -13,7 +13,9 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 
 输入为共享的 `.cache/openyida/<项目名>/requirement-brief.json`。
 
-已有明确的完整视觉方向、可信品牌规范、参考材料或应用主题时直接采用。除此之外，按[设计方向比较](../../references/theme-selection.md#设计方向比较)生成恰好三套完整方向（两个模板方向和一个独立自由创意选项），并按[视觉方向选择](references/visual-theme-selection.md)交给 `yida-app` 通过 `ask_human` 统一呈现；不再以“用户是否主动要求比较”作为触发条件。用户确认主题前只读主题索引中的精简风格摘要，不读取候选模板全文；确认后写入一致的 `visualDirection`、`selectedTheme`、`colorStrategy` 和导航结构，再读取选中的一份完整模板；模板方向的导航明暗由模板 `navTheme` 派生；自由创意按业务独立编写设计决策、导航明暗和 Token，不要求匹配模板。
+先按[已选风格只确认一次](../../references/theme-selection.md#已选风格只确认一次)复用用户回答与已保存选择，以下候选流程仅在尚无有效选择时执行。
+
+已有用户选择、明确的完整视觉方向、可信品牌规范、参考材料或应用主题时直接采用，设计细节未完成不代表未选择。仅在尚无可复用选择时，按[设计方向比较](../../references/theme-selection.md#设计方向比较)生成恰好三套完整方向（两个模板方向和一个独立自由创意选项），并按[视觉方向选择](references/visual-theme-selection.md)交给 `yida-app` 按[宿主展示规则](../../references/theme-selection.md#选择时展示名称与效果图)统一呈现（所有环境使用 `ask_human`，用户明确要求时才另行展示效果预览）；不再以“用户是否主动要求比较”作为触发条件。用户确认主题前只读主题索引中的精简风格摘要，不读取候选模板全文；确认后写入一致的 `visualDirection`、`selectedTheme`、`colorStrategy` 和导航结构，再读取选中的一份完整模板；模板方向的导航明暗由模板 `navTheme` 派生；自由创意按业务独立编写设计决策、导航明暗和 Token，不要求匹配模板。
 
 ## 阶段二：完成页面视觉应用
 
@@ -24,6 +26,8 @@ description: Plan 模式的视觉设计分支。基于需求选择视觉方向�
 3. 按 [整体主题规则](../../references/application-theme-consistency.md#导航与应用框架) 核对导航、应用框架、原生表单、记录详情与自定义页面的配色、形状、文字、间距和状态。每项必须保留 `visualMemoryApplications` 数组；没有匹配的主题记忆点时填写 `[]`，不要省略或写成字符串。按实际内容补页面局部差异与素材策略。完整主题由 CLI 注入，复杂组件定制时再读模板对应章节。
 4. 全局和局部 token 遵守 [基础变量契约](../../templates/design-themes/basic-tokens.json)，明确项目差异写 `visualStyle.tokens`，主色写 `forUser.colorStrategy.primaryColor`；沿用主题的字号、间距和组件圆角。
 5. CLI 按 [公共输出契约](../../workflow/output-design.md) 生成 frontmatter、anchor 索引和五章正文，并调用同一 `check-design` 校验。缺少逐页决定时只保留可预览草稿，补齐后再生成最终产物；旧计划同样不得以继承主题套话补过门槛。
+
+逐页按 [阅读无障碍门禁](../../references/page-quality-gates.md#阅读无障碍门禁) 将实际要求写入已有 `layout`、`responsive` 和 `acceptanceChecks`，覆盖文字可读、放大重排及完整信息获取；不新增重复字段，不将 CLI 校验通过视为读屏或真实页面验收通过。
 
 用户选择整体暗色或黑色主题时，按 [暗色主题浮层适配](../../references/theme/theme-token-presets.md#暗色主题浮层适配) 补齐 `visualStyle.tokens`；内容界面明暗与导航明暗分别描述，导航明暗仍由所选主题模板确定。
 

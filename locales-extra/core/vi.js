@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
     desc_get: 'Read frontend and management runtime entries',
     desc_set: 'Register application entries with partial update and readback',
@@ -24,6 +25,7 @@ module.exports = {
     repair_page_bindings: 'Sửa pageApplications trong visual.json để khớp từng mục customPageDetails trong business.json, không thêm biểu mẫu gốc. visualMemoryApplications phải là mảng; dùng [] nếu không có mục phù hợp. Giữ bản nháp, sửa các trường được liệt kê rồi chạy lại lệnh ban đầu. Không xóa thư mục hoặc chạy lại init.',
   },
   design_document: {
+    confirmation_snapshot_conflict: 'Confirmation snapshot {0} conflicts with its content address; the file was not overwritten.',
     update_conflict: "Không thể cập nhật {0} ({1}): nội dung hiện tại xung đột với phiên bản được tạo trước đó. Hãy đối chiếu thay đổi cục bộ trong phần này với dữ liệu kế hoạch rồi thử lại. Chưa lưu tệp nào.",
     theme_css_invalid: 'CSS giao diện gần dòng {0} có dấu ngoặc, chuỗi hoặc chú thích chưa đóng hoặc không khớp. Hãy sửa rồi thử lại.',
     theme_css_unresolved: 'Token CSS chủ đề {0} vẫn chứa chỗ giữ chỗ hoặc hướng dẫn tạo màu. Hoàn thiện design.md, chạy openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css>, rồi tải tệp đã tạo lên. Chỉ thay PRIMARY_COLOR là chưa đủ.',
@@ -793,6 +795,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    create_readback_mismatch: 'The created form does not contain all requested fields. Recover this existing form ID; do not create another form.',
     divider_type_invalid: 'Kiểu đường phân cách không được hỗ trợ: {0}. Giá trị được hỗ trợ: {1}',
     batch_invalid: 'Lô biểu mẫu không hợp lệ; kiểm tra chi tiết lỗi',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
@@ -948,6 +951,7 @@ module.exports = {
     failed: '  ❌ Tạo thất bại: {0}'
   },
   common: {
+    auth_identity_changed: 'Authentication identity changed during preflight; no write was issued.',
     http_status: '  HTTP status: {0}',
     http_response: '  HTTP response: {0}',
     response_body: '  Response body: {0}',
@@ -1066,6 +1070,10 @@ module.exports = {
     err_open_url_empty: 'Đường dẫn openUrl không được để trống: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'Không thể kết hợp colour có sẵn với CSS hoặc themeColor. Dùng --colour custom hoặc bỏ --colour.',
     custom_theme_color_required: 'colour=custom cần tệp giao diện hoặc themeColor hợp lệ. Dùng --theme-file hoặc --theme-color.',
     theme_not_persisted: 'Không thể xác nhận cài đặt giao diện sau khi lưu. Kiểm tra themeVerification và thử lại bằng update-app <appType> --theme-file <css>; không tạo lại ứng dụng.',
@@ -2129,3 +2137,7 @@ module.exports.sample_options = {
 
 module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
 module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;
+
+module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
+module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
+module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;

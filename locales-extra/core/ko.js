@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
     desc_get: 'Read frontend and management runtime entries',
     desc_set: 'Register application entries with partial update and readback',
@@ -24,6 +25,7 @@ module.exports = {
     repair_page_bindings: 'visual.json의 pageApplications를 business.json의 customPageDetails와 일대일로 맞추고 기본 폼은 제외하세요. visualMemoryApplications는 배열이어야 하며 해당 항목이 없으면 []를 사용하세요. 기존 초안을 유지하고 표시된 필드를 수정한 뒤 원래 명령을 다시 실행하세요. 디렉터리를 삭제하거나 init을 다시 실행하지 마세요.',
   },
   design_document: {
+    confirmation_snapshot_conflict: 'Confirmation snapshot {0} conflicts with its content address; the file was not overwritten.',
     update_conflict: "{0}({1})을 업데이트할 수 없습니다. 현재 내용이 이전 생성 결과와 충돌합니다. 해당 부분의 로컬 변경 사항과 계획 데이터를 일치시킨 후 다시 시도하세요. 파일은 저장되지 않았습니다.",
     theme_css_invalid: '테마 CSS의 {0}행 근처에 닫히지 않았거나 짝이 맞지 않는 괄호, 문자열 또는 주석이 있습니다. 수정 후 다시 시도하세요.',
     theme_css_unresolved: '테마 CSS의 {0}에 템플릿 자리 표시자 또는 색상 생성 지침이 남아 있습니다. design.md를 완성하고 openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> 명령을 실행한 뒤 생성된 파일을 업로드하세요. PRIMARY_COLOR만 바꾸면 안 됩니다.',
@@ -793,6 +795,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    create_readback_mismatch: 'The created form does not contain all requested fields. Recover this existing form ID; do not create another form.',
     divider_type_invalid: '지원하지 않는 구분선 스타일: {0}. 지원 값: {1}',
     batch_invalid: '양식 일괄 설정이 잘못되었습니다. 오류 세부 정보를 확인하세요',
     create_title: '  yida-create-form-page - Yida Form Page Creation Tool',
@@ -949,6 +952,7 @@ module.exports = {
     failed: '  ❌ 폼 페이지 생성 실패: {0}'
   },
   common: {
+    auth_identity_changed: 'Authentication identity changed during preflight; no write was issued.',
     http_status: '  HTTP status: {0}',
     http_response: '  HTTP response: {0}',
     response_body: '  Response body: {0}',
@@ -1067,6 +1071,10 @@ module.exports = {
     err_open_url_empty: 'openUrl 경로가 비어 있습니다: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: '프리셋 colour는 CSS 또는 themeColor와 함께 사용할 수 없습니다. --colour custom을 사용하거나 --colour를 생략하세요.',
     custom_theme_color_required: 'colour=custom에는 테마 파일 또는 유효한 themeColor가 필요합니다. --theme-file 또는 --theme-color를 지정하세요.',
     theme_not_persisted: '저장 후 앱 테마 설정을 확인하지 못했습니다. themeVerification을 확인하고 update-app <appType> --theme-file <css>로 다시 시도하세요. 앱을 다시 만들지 마세요.',
@@ -2130,3 +2138,7 @@ module.exports.sample_options = {
 
 module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
 module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;
+
+module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
+module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
+module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;

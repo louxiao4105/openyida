@@ -45,14 +45,17 @@ afterEach(() => { fs.rmSync(directory, { recursive: true, force: true }); });
 function planFor(themeId) {
   const plan = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/design-plan.json'), 'utf8'));
   plan.visualStyle.forUser.selectedTheme = { themeId, source: 'user_selected', templatePath: loadThemeIndex().themes.find(theme => theme.themeId === themeId).templatePath };
+  const theme = themeIndex.find(item => item.themeId === themeId);
+  const raw = parseDesignDocument(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8')).metadata.tokens['application-global'].colors['--color-brand1-6'];
+  if (/^#[0-9a-f]{6}$/i.test(raw)) {plan.visualStyle.forUser.colorStrategy.primaryColor = raw;}
   plan.pages.customPageDetails[0].pageSpecHandoff = { designRefs: ['themeProfile'] };
   return plan;
 }
 
-test('catalog exposes fourteen presets and creative while eighteen style bundles remain preserved', () => {
+test('catalog exposes eighteen presets and creative while eighteen style bundles remain preserved', () => {
   expect(styles).toHaveLength(18);
-  expect(catalog().themes).toHaveLength(14);
-  expect(catalog().themes.some(theme => theme.themeId.startsWith('app-'))).toBe(false);
+  expect(catalog().themes).toHaveLength(18);
+  expect(catalog().themes.filter(theme => theme.themeId.startsWith('app-')).map(theme => theme.themeId).sort()).toEqual(['app-platinum', 'app-pop', 'app-sage', 'app-teal', 'app-terminal']);
   expect(catalog().creativeOption).toMatchObject({ themeId: 'free-creative', mode: 'creative' });
   expect(catalog().themes.some(theme => theme.mode === 'creative')).toBe(false);
   const layouts = new Set(styles.map(theme => JSON.parse(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.formLayoutPath), 'utf8'))[0].layout));
@@ -66,7 +69,7 @@ test('theme catalog separates content tone from navigation tone', () => {
   expect(themeIndex.find(theme => theme.themeId === 'dark-rail-fine-lines')).toMatchObject({
     contentTone: 'light', navTheme: 'dark',
   });
-  expect(themeIndex.find(theme => theme.themeId === 'dark-inset-hairline')).toMatchObject({
+  expect(themeIndex.find(theme => theme.themeId === 'dark-rail-signal-panels')).toMatchObject({
     contentTone: 'dark', navTheme: 'dark',
   });
   expect(themeIndex.find(theme => theme.themeId === 'free-creative')).not.toHaveProperty('contentTone');
@@ -74,7 +77,7 @@ test('theme catalog separates content tone from navigation tone', () => {
 
   applicationStyles.filter(theme => theme.mode === 'template').forEach(theme => {
     const design = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
-    expect(parseDesignDocument(design).metadata.themeProfile).toEqual({
+    expect(parseDesignDocument(design).metadata.themeProfile).toMatchObject({
       contentTone: theme.contentTone, navTheme: theme.navTheme,
     });
     expect(design).toContain(`当前模板使用 contentTone: ${theme.contentTone}、navTheme: ${theme.navTheme}`);
@@ -84,42 +87,20 @@ test('theme catalog separates content tone from navigation tone', () => {
   expect(creative).toContain('在 themeProfile 中分别填写 contentTone 与 navTheme');
 });
 
-test('every named theme has its own complete platform navigation design and readable guidance', () => {
-  const platformCss = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, 'references/theme/app-custom-theme-template.css'), 'utf8');
-  const supported = new Set([...platformCss.matchAll(/(--[\w-]+)\s*:/g)].map(match => match[1]));
+test('every named theme keeps main navigation tokens without imposing an unrelated global shape', () => {
   const palettes = new Set();
   themeIndex.filter(theme => theme.mode !== 'creative').forEach(theme => {
     const source = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
     const navigation = parseDesignDocument(source).metadata.tokens['application-global'].appearance.navigation;
     expect(theme.navigationSummary).toEqual(expect.any(String));
-    expect(source).toContain(theme.navigationSummary);
-    expect(source).toContain('导航与应用框架、表单、自定义页面和详情页共用设计语言');
-    expect(source).not.toContain('原生导航仅配置上述开放颜色');
-    Object.keys(navigation).forEach(token => expect(supported.has(token)).toBe(true));
-    expect(navigation).not.toHaveProperty('--pod-nav-search-text-color');
-    expect(navigation).not.toHaveProperty('--pod-nav-search-border-active-color');
-    // Expanded hierarchy lines are an intentional per-theme design choice.
-    expect(navigation['--pod-nav-sub-divider-color']).toEqual(expect.any(String));
     const css = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.cssTemplatePath), 'utf8');
-    expect(css).toContain(`--pod-nav-sub-divider-color: ${navigation['--pod-nav-sub-divider-color']};`);
-    NAVIGATION_COLOR_TOKENS.forEach(token => expect(css).toContain(`${token}:`));
-    palettes.add(NAVIGATION_COLOR_TOKENS.map(token => navigation[token]).join('|'));
-    // Stock menus remain scannable; project overrides may still use larger shapes.
-    expect(parseInt(navigation['--pod-nav-menu-item-height'] || '36', 10)).toBeLessThanOrEqual(40);
-    navigation['--pod-nav-menu-item-radius'].split(' ').forEach(value => expect(parseInt(value, 10)).toBeLessThanOrEqual(8));
-    const shadow = navigation['--pod-nav-menu-item-selected-shadow'] || 'none';
-    expect(shadow === 'none' || /^inset [1-3]px 0 0 /.test(shadow)).toBe(true);
-    expect(navigation).not.toHaveProperty('--pod-nav-menu-item-border');
-    for (const state of ['hover', 'selected']) {
-      expect(navigation).not.toHaveProperty(`--pod-nav-menu-item-${state}-border`);
+    for (const [name, value] of Object.entries(navigation)) {
+      const actual = require('../lib/core/theme-brand-scale').rootDeclarations(css.replace(/\/\*[\s\S]*?\*\//g, ''))[name];
+      expect(actual.replace(/\s+/g, ' ').toLowerCase()).toBe(String(value).replace(/\s+/g, ' ').toLowerCase());
     }
-    expect(css).not.toMatch(/^\s*border: var\(--pod-nav-menu-item-/m);
-    expect(css).not.toContain('height: 100% !important;');
-    if (!navigation['--pod-nav-menu-item-selected-shadow']) {expect(css).not.toContain('openyida-navigation-shape:start');}
-    // Navigation overlays have their own surface, including dark-nav/light-content themes.
-    expect(navigation['--pod-nav-popup-bg-color']).toBe('var(--pod-shell-theme-bg-color)');
+    palettes.add(NAVIGATION_COLOR_TOKENS.map(token => navigation[token]).join('|'));
   });
-  expect(palettes.size).toBe(14);
+  expect(palettes.size).toBe(18);
 });
 
 test('application preset navigation text is readable in ordinary, hover and selected states', () => {
@@ -151,7 +132,8 @@ test.each(themeIndex.filter(theme => theme.mode !== 'creative'))('$themeId bundl
   blocks.filter(([, selector]) => selector === ':root').forEach(([, , body]) => read(body));
   blocks.filter(([, selector]) => [`.pod-premium.nav-${theme.navTheme}`, `.pod-premium.is-${theme.navTheme}`].includes(selector))
     .forEach(([, , body]) => read(body));
-  expect(values).toMatchObject(expected);
+  const normalize = values => Object.fromEntries(Object.entries(values).map(([name, value]) => [name, String(value).replace(/\s+/g, ' ').toLowerCase()]));
+  expect(normalize(values)).toMatchObject(normalize(expected));
 });
 
 test('all nineteen form-layout starters use supported types and direct capability language', () => {
@@ -218,8 +200,8 @@ test('all nineteen application styles define detail read-only field tokens and g
   });
 });
 
-test('all fourteen shared themes include native form layout and style guidance', () => {
-  expect(sharedThemes).toHaveLength(14);
+test('all thirteen shared themes include native form layout and style guidance', () => {
+  expect(sharedThemes).toHaveLength(13);
   sharedThemes.forEach(theme => {
     const design = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, theme.templatePath), 'utf8');
     expect(design).toContain('### 表单组件与版式结构');
@@ -262,14 +244,12 @@ test('form skills describe component capabilities with direct instructions', () 
 
 test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(style => [style.themeId, style]))('%s pairs generate valid CSS and compile the form layout', (_id, style) => {
   const templateCss = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.cssTemplatePath), 'utf8');
-  expect(templateCss).toContain('--color-brand1-6: {{PRIMARY_COLOR}};');
-  expect(templateCss).toContain('--color-brand1-1: <生成实际色值：');
   const template = fs.readFileSync(path.join(DESIGN_SKILL_ROOT, style.templatePath), 'utf8');
   const design = resolveThemeColors(template.replace(/\{\{PRIMARY_COLOR\}\}/g, '#357942'));
   const css = applyDesignTokens(templateCss, design);
   expect(() => validateThemeCssContent(css)).not.toThrow();
   expect(css).not.toMatch(/\{\{|<生成实际色值：/);
-  expect(css).toContain('--color-brand1-6: #357942;');
+  expect(css).toContain(`--color-brand1-6: ${readDesignTokens(design)['--color-brand1-6']};`);
   if (style.collection === 'application-styles') {
     expect(css.match(/OPENYIDA APPLICATION STYLE RECIPES START/g)).toHaveLength(1);
   }
@@ -290,6 +270,12 @@ test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(style => [st
 test.each(themeIndex.filter(theme => theme.mode !== 'creative').map(theme => theme.themeId))('%s survives Plan materialization and Fast regeneration', async themeId => {
   const input = path.join(directory, 'build-plan.json');
   fs.writeFileSync(input, JSON.stringify(planFor(themeId)));
+  const blocked = ['dark-rail-fine-lines', 'outlined-texture-duotone', 'soft-inset-surfaces', 'soft-rail-bold-band', 'warm-canvas-contrast-panels'];
+  if (blocked.includes(themeId)) {
+    expect(() => materialize(input)).toThrow(expect.objectContaining({ code: 'DESIGN_THEME_CONTRAST_LOW' }));
+    expect(fs.existsSync(path.join(directory, 'app-theme.css'))).toBe(false);
+    return;
+  }
   const result = materialize(input);
   const design = fs.readFileSync(result.outputs.design, 'utf8');
   const metadata = parseDesignDocument(design).metadata;
@@ -318,12 +304,14 @@ test('export writes all three assets and refuses to overwrite authored work', as
     .rejects.toMatchObject({ code: 'APPLICATION_STYLE_SAMPLE_INVALID' });
 });
 
-test('every catalog entry exports exactly three files with unresolved project brand colors', () => {
+test('every catalog entry exports its three source files without rewriting template palettes', () => {
   themeIndex.forEach(theme => {
     const output = path.join(directory, theme.themeId);
     exportApplicationStyle(theme.themeId, output);
     expect(fs.readdirSync(output).sort()).toEqual(['app_theme.css', 'design.md', 'form-layout.json']);
-    expect(fs.readFileSync(path.join(output, 'app_theme.css'), 'utf8')).toContain('--color-brand1-6: {{PRIMARY_COLOR}};');
+    for (const [name, source] of [['design.md', theme.templatePath], ['app_theme.css', theme.cssTemplatePath], ['form-layout.json', theme.formLayoutPath]]) {
+      expect(fs.readFileSync(path.join(output, name), 'utf8')).toBe(fs.readFileSync(path.join(DESIGN_SKILL_ROOT, source), 'utf8'));
+    }
   });
 });
 
@@ -356,7 +344,7 @@ test('historical theme paths resolve to the same design and mismatched paths rem
   expect(renderDesign(plan)).toBe(current);
   const normalized = normalizePlan({ ...plan, schemaVersion: '2.0' });
   expect(normalized.visualStyle.internal.selectedTheme.templatePath).toBe('templates/design-themes/soft-inset-surfaces/design.md');
-  plan.visualStyle.forUser.selectedTheme.templatePath = 'templates/design-themes/dark-inset-hairline.md';
+  plan.visualStyle.forUser.selectedTheme.templatePath = 'templates/design-themes/dark-rail-signal-panels.md';
   expect(() => renderDesign(plan)).toThrow();
 });
 

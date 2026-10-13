@@ -53,9 +53,54 @@ describe('OpenYida skill contracts', () => {
     const plan = readSkill('yida-skills/skills/yida-app/workflow/plan/workflow.md');
     const interaction = readSkill('yida-skills/skills/yida-design/references/ask-human-interaction-contract.md');
     expect(shared).toContain('Fast 与 Plan 使用下面同一套三方向生成规则和候选字段');
-    expect(shared).toContain('Plan 在用户没有明确完整风格时必须展示同样三套方向并通过 `ask_human` 选择');
+    expect(shared).toContain('Plan 仅在尚无有效选择且用户没有明确完整风格时必须展示同样三套方向并按下方宿主展示规则获得用户选择');
     expect(plan).toContain('获得选择或已有明确完整风格后，再继续主题映射和初始化');
-    expect(interaction).toContain('必须使用“应用设计风格”交互展示共用规则生成的三套候选');
+    for (const relative of [
+      'yida-skills/skills/yida-design/SKILL.md',
+      'yida-skills/skills/yida-design/sub_skill/yida-design-plan/SKILL.md',
+      'yida-skills/skills/yida-app/workflow/step-2-design.md',
+      'yida-skills/skills/yida-app/workflow/plan/workflow.md',
+      'yida-skills/skills/yida-requirement-analysis/references/handoff.md',
+    ]) { expect(readSkill(relative)).toContain('theme-selection.md#已选风格只确认一次'); }
+    expect(shared).toContain('配色、Token 或页面布局未完成时，由 AI 补齐');
+    expect(shared).toContain('PRD 生成、修改或确认之后');
+    expect(shared).toContain('只有用户主动明确要求换风格');
+    expect(readSkill('yida-skills/skills/yida-prd/SKILL.md')).toContain('theme-selection.md#已选风格只确认一次');
+    expect(shared).toContain('第一直觉”只作用于首次提出候选前');
+    expect(shared).toContain('较早交互的迟到回传不能覆盖用户后来的选择');
+    expect(shared).toContain('`active.toolId=qwenwork`');
+    expect(shared).toContain('`qoder_show_widget`');
+    expect(shared).toContain('openyida sample yida-design theme-selector --json');
+    expect(shared).toContain('skills 根目录相对路径');
+    expect(shared).not.toContain('的绝对路径，`data`');
+    expect(shared).toContain('所有环境统一使用 `ask_human`');
+    expect(interaction).toContain('theme-selection.md#选择时展示名称与效果图');
+    const handoff = readSkill('yida-skills/skills/yida-requirement-analysis/references/handoff.md');
+    expect(handoff).toContain('theme-selection.md#选择时展示名称与效果图');
+    expect(handoff).not.toContain('Plan 在没有明确完整风格时通过 `ask_human` 选择');
+    expect(interaction).toContain('才使用“应用设计风格”交互展示共用规则生成的三套候选');
+  });
+
+  test('All hosts serialize questions through one shared contract', () => {
+    for (const file of [
+      'yida-design/SKILL.md',
+      'yida-design/references/ask-human-interaction-contract.md',
+      'yida-app/workflow/plan/workflow.md',
+      'yida-requirement-analysis/workflow/prepare-brief.md',
+    ]) {
+      expect(readSkill(`yida-skills/skills/${file}`)).toContain('theme-selection.md#交互顺序');
+    }
+    const shared = readSkill('yida-skills/skills/yida-design/references/theme-selection.md');
+    expect(shared).toContain('同一任务最多一个待答交互');
+    expect(shared).toContain('不再因阶段不同强制拆轮');
+    expect(shared).toContain('波普风格的使用条件');
+    expect(shared).toContain('仅有门户、图表、看板');
+    expect(shared).toContain('看看全部风格');
+    expect(shared).toContain('不为此额外问用户');
+    expect(shared).toContain('不为排序新增 `ask_human`');
+    expect(shared).toContain('未答、关闭或超时不算答案');
+    expect(shared).toContain('旧回调不得覆盖当前答案');
+    expect(shared).toContain('后续搭建或美化方案确认仍在方案完成后进行');
   });
 
   test('platform workspace pages keep cross-module navigation with the host in Fast and Plan', () => {
@@ -512,8 +557,8 @@ describe('OpenYida skill contracts', () => {
     expect(canvasTable.negative_signals).toEqual(expect.arrayContaining(['平台 JSX/native 直接 this.utils.yida.saveFormData']));
 
     const design = byName.get('yida-design');
-    expect(design.description).toContain('读取整理后的用户需求');
-    expect(design.description).toContain('本技能不写 PRD 或页面源码');
+    expect(design.description).toContain('基于整理后的用户需求');
+    expect(design.description).toContain('不编写 PRD 或页面源码');
     expect(design.done_when).toContain('prd/<项目名>/design.md');
     expect(design.done_when).toContain('不写 prd.md');
     expect(design.tags).toEqual(expect.arrayContaining(['视觉设计', 'ui_skill']));
@@ -1420,7 +1465,7 @@ describe('OpenYida skill contracts', () => {
       },
     };
 
-    expect(presets).toContain('主题选择先根据行业、品牌、业务情绪和视觉目标做创意判断');
+    expect(presets).toContain('../theme-selection.md');
     expect(presets).toContain('不能套用“科技=蓝、宠物=橙、法律=蓝”这类行业刻板配色');
     expect(presets).toContain('本文件是 `yida-design` 确定 OpenYida 应用主题色阶和 token 修改清单时使用的参考');
     expect(presets).toContain('## 色盘参考清单');
@@ -1498,7 +1543,8 @@ describe('OpenYida skill contracts', () => {
     expect(presets).toContain('`--color-brand-*` 是移动端和部分原生表单/壳层消费的品牌色阶');
     expect(presets).toContain('## blue');
     expect(presets).toContain('## podBlue');
-    expect(presets).toContain('| `podBule` | 平台蓝色 | 按需 |');
+    expect(presets).toContain('| `podBlue` | 平台蓝 | 按需 |');
+    expect(presets).not.toContain('podBule');
     expect(presets).toContain('| `teal` | 青色 | 按需 |');
     expect(presets).toContain('| `black` | 黑色 | 按需 |');
     expect(presets).toContain('## teal');
@@ -1564,8 +1610,20 @@ describe('OpenYida skill contracts', () => {
     expect(visualEngine).toContain('默认浅色内容画布');
     expect(pageUiux).toContain('工作台、门户、列表、详情、普通看板和数据大屏默认都是浅底 / light 模式');
     expect(pageUiux).toContain('只有用户明确说暗色/深色/夜间/高对比时才用深色沉浸');
-    expect(dashboardTheme).toContain('白底商务风（DEFAULT）');
-    expect(dashboardTheme).toContain('用户只说“做个看板 / 驾驶舱 / 数据大屏”，不说暗色或夜间，默认用 **主题 3（白底商务）**');
+    expect(dashboardTheme).toContain('默认浅色内容画布');
+    expect(dashboardTheme).toContain('../../yida-design/references/theme-selection.md');
+    expect(dashboardTheme).not.toContain('命中即止');
+    expect(dashboardTheme).not.toContain('白底商务风（DEFAULT）');
+    expect(dashboardTheme).not.toMatch(/primary:\s*['"]#/);
+    const selection = readSkill('yida-skills/skills/yida-design/references/theme-selection.md');
+    expect(selection).toContain('## 拒绝第一直觉');
+    expect(selection).toContain('被排除方案不计入三套候选');
+    expect(selection).toContain('不得仅改名称、微调色值或调换候选顺序后重新引入原方案');
+    expect(selection).toContain('用户明确指定的完整风格、品牌约束、参考材料或已有满意主题优先保留');
+    expect(visualThemeSelection).toContain('../../../references/theme-selection.md');
+    expect(selection).toContain('不能三套都是同一蓝色底稿只换名称');
+    expect(selection).not.toContain('不强制淘汰首选');
+    expect(selection).not.toContain('第一直觉有依据可以胜出');
     expect(dashboardTheme).not.toContain('深色紫蓝科技风（DEFAULT）');
     expect(chartSpec).toContain('大屏不等于暗色');
   });

@@ -5,6 +5,7 @@
  * Missing keys are completed from the core fallback language so optional packs stay schema-compatible.
  */
 module.exports = {
+  theme_source: { conflict: 'The theme source differs from the existing CSS or cannot be verified. Generate to a new output path, review and migrate project customizations before replacing the original file.' },
   app_entry: {
     desc_get: 'Read frontend and management runtime entries',
     desc_set: 'Register application entries with partial update and readback',
@@ -24,6 +25,7 @@ module.exports = {
     repair_page_bindings: 'visual.json の pageApplications を business.json の customPageDetails と一対一に対応させ、ネイティブフォームは除外してください。visualMemoryApplications は配列とし、該当なしは [] にします。既存の下書きを保持し、示されたフィールドを修正して元のコマンドを再実行してください。ディレクトリの削除や init の再実行は不要です。',
   },
   design_document: {
+    confirmation_snapshot_conflict: 'Confirmation snapshot {0} conflicts with its content address; the file was not overwritten.',
     update_conflict: "{0}（{1}）を更新できません。現在の内容が前回の生成結果と競合しています。該当箇所のローカル変更と計画データを合わせてから再試行してください。ファイルは保存されていません。",
     theme_css_invalid: 'テーマ CSS の {0} 行付近に、閉じられていないか対応しない括弧、文字列、コメントがあります。修正して再試行してください。',
     theme_css_unresolved: 'テーマ CSS の {0} にテンプレートのプレースホルダーまたは色の生成指示が残っています。design.md を完成させ、openyida sample yida-design app-theme --design-file <design.md> --output <app-theme.css> を実行してから生成ファイルをアップロードしてください。PRIMARY_COLOR の置換だけでは不十分です。',
@@ -616,7 +618,7 @@ module.exports = {
     waiting_login: '  ログイン完了を待機中（最大 10 分）...',
     login_timeout: '  ⏰ ログインがタイムアウトしました（10 分）。再試行してください。',
     login_success: '  ✅ ログインに成功しました！',
-    no_csrf_in_cookie: '  ❌ ログインは成功しましたが Cookie に tianshu_csrf_token がありません。再試行してください。',
+    no_csrf_in_cookie: '  ❌ トークンによるログインで有効なユーザー情報を取得できませんでした。再試行してください。',
     no_cookie_cache: '  ❌ 有効なローカル token がありません。再ログインが必要です。',
     no_csrf_in_cache: '  ❌ 有効なローカル token がありません。再ログインが必要です。',
     csrf_extracted: '  ✅ csrf_token を取得しました: {0}...',
@@ -759,6 +761,7 @@ module.exports = {
     no_login: '  ❌ Unable to get valid login credentials'
   },
   create_form: {
+    create_readback_mismatch: 'The created form does not contain all requested fields. Recover this existing form ID; do not create another form.',
     divider_type_invalid: '未対応の区切り線スタイル: {0}。対応する値: {1}',
     batch_invalid: 'フォームのバッチ設定が無効です。エラー詳細を確認してください',
     create_title: '  yida-create-form-page - Yida フォームページ作成ツール',
@@ -907,6 +910,7 @@ module.exports = {
     data_check_failed: '  ⚠️  データ確認に失敗しました。変更を続行します'
   },
   common: {
+    auth_identity_changed: 'Authentication identity changed during preflight; no write was issued.',
     http_status: '  HTTP ステータス: {0}',
     http_response: '  HTTP レスポンス: {0}',
     response_body: '  レスポンス内容: {0}',
@@ -1020,6 +1024,10 @@ module.exports = {
     err_open_url_chars: 'openUrl のパス部分は a-z A-Z 0-9 _ - と区切り文字 / のみ使用できます。現在の値: {0}'
   },
   update_app: {
+    legacy_style_confirm_required: 'Application CSS is discouraged for legacy or unverified themes. Review CSS scope and ask the human to confirm injection into this exact application (navigation, forms and visit pages may be affected). Only then pass --confirm-legacy-app-style. Otherwise use page-scoped styles.',
+    disable_theme_conflict: '--disable-custom-theme only disables CSS and cannot be combined with other application updates.',
+    custom_theme_config_invalid: 'customThemeStyle is missing, malformed, or lacks a nonempty cssUrl. No disable request was submitted; inspect the latest app configuration.',
+    custom_theme_disabled: 'Custom theme CSS is disabled and resource settings are retained; runtime page verification remains pending.',
     theme_preset_conflict: 'プリセット colour と CSS または themeColor は併用できません。--colour custom を指定するか --colour を省略してください。',
     custom_theme_color_required: 'colour=custom にはテーマファイルまたは有効な themeColor が必要です。--theme-file または --theme-color を指定してください。',
     theme_not_persisted: '保存後のアプリテーマ設定を確認できませんでした。themeVerification を確認し、update-app <appType> --theme-file <css> で再試行してください。アプリを作り直さないでください。',
@@ -2056,3 +2064,7 @@ module.exports.sample_options = {
 
 module.exports.upgrade_app_theme = require('../../lib/core/locales/en').upgrade_app_theme;
 module.exports.help.cmd_upgrade_app_theme = require('../../lib/core/locales/en').help.cmd_upgrade_app_theme;
+
+module.exports.app_theme = require('../../lib/core/locales/en').app_theme;
+module.exports.help.cmd_app_theme_snapshot = require('../../lib/core/locales/en').help.cmd_app_theme_snapshot;
+module.exports.help.cmd_app_theme_restore = require('../../lib/core/locales/en').help.cmd_app_theme_restore;

@@ -1,9 +1,11 @@
 ---
 schemaVersion: "1.0"
-name: "DEV.LOG — 开发者个人品牌网站"
+name: "{{PROJECT_NAME}}"
+themeId: "app-terminal"
 description: "紧凑双列与可扫描的日志清单；像素直角、点线边界、等宽排版。适合明确要求终端风格的技术工具。"
-applicationStyle: {"recipe":"application-style-v1","mode":"template"}
-buildPlanRevision: "1"
+applicationStyle:
+  recipe: "application-style-v1"
+  mode: "template"
 tokens:
   application-global:
     appearance:
@@ -141,31 +143,18 @@ tokens:
     "--oyd-rule-style": "dotted"
     "--oyd-layout-columns": "minmax(0, 6fr) minmax(0, 6fr)"
     "--oyd-surface-shadow": "none"
-themeProfile: {"name":"终端像素","themeColor":"#22C55E","themeColorSource":"user_explicit","contentTone":"dark","navTheme":"dark","themeDelivery":"app-custom-theme-file","themeFile":"./app_theme.css","navigationType":"platform-top","hideAppNav":"n","layoutDirection":"top","logoSource":"appIcon"}
-sceneRecipes: {"home":{"pages":[{"pageId":"home","anchor":"#page-686f6d65"}]},"projects":{"pages":[{"pageId":"projects","anchor":"#page-70726f6a65637473"}]},"about":{"pages":[{"pageId":"about","anchor":"#page-61626f7574"}]},"contact":{"pages":[{"pageId":"contact","anchor":"#page-636f6e74616374"}]},"notfound":{"pages":[{"pageId":"notfound","anchor":"#page-6e6f74666f756e64"}]},"report":{"pages":[{"pageId":"report","anchor":"#page-7265706f7274"}]}}
-components: {"button":{"anchor":"#component-button"},"input":{"anchor":"#component-input"},"card":{"anchor":"#component-card"},"table":{"anchor":"#component-table"},"chart":{"anchor":"#component-chart"}}
-states: {"empty":{"anchor":"#state-empty"},"loading":{"anchor":"#state-loading"},"error":{"anchor":"#state-error"},"disabled":{"anchor":"#state-disabled"},"focus":{"anchor":"#state-focus"},"selected":{"anchor":"#state-selected"}}
-assetStrategy: {"pages":[{"pageId":"home","imageNeed":"none","reason":"无图片槽位。","slots":[]},{"pageId":"projects","imageNeed":"none","reason":"无图片槽位。","slots":[]},{"pageId":"about","imageNeed":"none","reason":"无图片槽位。","slots":[]},{"pageId":"contact","imageNeed":"none","reason":"无图片槽位。","slots":[]},{"pageId":"notfound","imageNeed":"none","reason":"无图片槽位。","slots":[]},{"pageId":"report","imageNeed":"none","reason":"无图片槽位。","slots":[]}],"materialStatus":"none","missingAssets":[],"notes":"需要图片时使用 yida-image-assets。"}
-iconSystem: {"library":"lucide-react","mappings":{}}
+themeProfile:
+  contentTone: "dark"
+  navTheme: "dark"
 ---
 
-# DEV.LOG — 开发者个人品牌网站 design.md
+# {{PROJECT_NAME}} design.md
 
 ## 1. 风格摘要
 
 紧凑双列与可扫描的日志清单；像素直角、点线边界、等宽排版。适合明确要求终端风格的技术工具。
 
-导航、应用框架、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，按实际行业、页面标题和数据设计。色彩来源：user_explicit；主色由 #22C55E 实例化，品牌悬停色按同源占位说明生成；模板不固定项目品牌色。
-
-### 项目视觉选择与事实
-
-- 视觉方向：终端像素
-- 方向说明：终端像素风格：深色画布、等宽字体、命令行提示符、扫描线/像素装饰、荧光绿强调
-- 主题色：荧光终端绿 `#22C55E`
-- 业务领域：开发者个人品牌 / 个人作品展示
-- 产品形态：-
-- 主题应用与前后台边界：当前产品形态下的全部页面共享项目设计系统；页面模式、内容优先级和信息密度保持页面规划。
-- 已确认视觉约束：无额外约束
+导航、应用框架、自定义页面、表单、编辑与详情共用这一套视觉语言。业务内容来自 PRD，按实际行业、页面标题和数据设计。模板使用已实例化的绿色配色；项目明确要求改色时，在保留像素风格与可读性的前提下同步设计与 CSS。
 
 ## 2. 页面视觉系统
 
@@ -177,82 +166,7 @@ iconSystem: {"library":"lucide-react","mappings":{}}
 
 ### 2.2 应用导航
 
-#### 本项目导航与应用框架
-
-- 导航类型：平台顶部导航
-- 导航明暗：深色
-- 导航背景：`--pod-shell-theme-bg-color`（最终值见 tokens）
-- 布局依据：前台独立入口使用自定义顶部导航条；管理后台沿用平台导航
-- 明暗依据：沿用已选应用风格的导航明暗，当前为深色。
-
-- 导航、表单、自定义页面和记录详情共用本项目设计；导航覆盖项见 tokens.application-global.appearance.navigation，未声明项沿用平台绑定与默认值。
-
-| 角色 | 变量 | 本项目取值 |
-| --- | --- | --- |
-| 导航背景 | --pod-shell-theme-bg-color | #09150F |
-| 普通文字 | --pod-nav-item-text-color | #9BCDA5 |
-| 悬停文字 | --pod-nav-item-text-hover-color | #C5F4CB |
-| 选中文字 | --pod-nav-item-text-selected-color | #D2FFD9 |
-| 悬停背景 | --pod-nav-menu-bg-hover-color | #203627 |
-| 选中背景 | --pod-nav-menu-bg-selected-color | #203D2B |
-| 分组边界 | --pod-nav-sub-divider-color | #558966 |
-| 弹层背景 | --pod-nav-popup-bg-color | var(--pod-shell-theme-bg-color) |
-| 菜单圆角 | --pod-nav-menu-item-radius | 0px |
-| 菜单间距 | --pod-nav-menu-gap | 4px |
-
-#### 首页 Hero的导航
-
-| 项目 | 方案 |
-| --- | --- |
-| 访问方式 | 独立页面入口 |
-| 页面菜单 | 自定义顶部菜单 |
-| 页面实现边界 | 按独立入口方案组织内容，不嵌套平台导航 |
-| 导航影响范围 | 仅当前入口，应用工作区保留平台导航 |
-| 选择依据 | 前台独立入口使用自定义顶部终端导航 |
-#### 作品集的导航
-
-| 项目 | 方案 |
-| --- | --- |
-| 访问方式 | 独立页面入口 |
-| 页面菜单 | 自定义顶部菜单 |
-| 页面实现边界 | 按独立入口方案组织内容，不嵌套平台导航 |
-| 导航影响范围 | 仅当前入口，应用工作区保留平台导航 |
-| 选择依据 | 前台独立入口使用自定义顶部终端导航 |
-#### 关于我的导航
-
-| 项目 | 方案 |
-| --- | --- |
-| 访问方式 | 独立页面入口 |
-| 页面菜单 | 自定义顶部菜单 |
-| 页面实现边界 | 按独立入口方案组织内容，不嵌套平台导航 |
-| 导航影响范围 | 仅当前入口，应用工作区保留平台导航 |
-| 选择依据 | 前台独立入口使用自定义顶部终端导航 |
-#### 联系页的导航
-
-| 项目 | 方案 |
-| --- | --- |
-| 访问方式 | 独立页面入口 |
-| 页面菜单 | 自定义顶部菜单 |
-| 页面实现边界 | 按独立入口方案组织内容，不嵌套平台导航 |
-| 导航影响范围 | 仅当前入口，应用工作区保留平台导航 |
-| 选择依据 | 前台独立入口使用自定义顶部终端导航 |
-#### 404 页的导航
-
-| 项目 | 方案 |
-| --- | --- |
-| 访问方式 | 独立页面入口 |
-| 页面菜单 | 自定义顶部菜单 |
-| 页面实现边界 | 按独立入口方案组织内容，不嵌套平台导航 |
-| 导航影响范围 | 仅当前入口，应用工作区保留平台导航 |
-| 选择依据 | 前台独立入口使用自定义顶部终端导航 |
-#### 数据报表的导航
-
-| 项目 | 方案 |
-| --- | --- |
-| 访问方式 | 应用工作区入口 |
-| 页面菜单 | 沿用平台导航 |
-| 页面实现边界 | 只实现业务内容；同任务分类用页内 Tab，跨模块切换交给平台菜单，不重复自绘管理导航 |
-| 导航影响范围 | 保留平台导航 |
+深绿导航使用紧凑方角和清晰文字，选中项保持暗底亮字；终端感来自配色与字体，菜单不叠加左右括号阴影。
 
 常驻导航优先沿用平台原始样式，通过主题文字、背景与字重区分状态。菜单 border、box-shadow 是可选覆盖，没有明确用途就不声明；不为了统一风格给每项加框或投影。普通入口融入同一侧栏，按连续目录组织；分组靠留白与文字层级，不把导航复制成输入框、独立按钮或卡片堆叠。内容卡片、主按钮和表单可以使用更强的形状与材质，同一主题不意味着所有组件装饰强度相同。业务确有触控或特殊展示需求时，在本 design.md 调整并验收，不在运行时限制项目自定义值。
 
@@ -264,7 +178,7 @@ iconSystem: {"library":"lucide-react","mappings":{}}
 
 菜单高度、圆角与间距使用 --pod-nav-menu-item-height、--pod-nav-menu-item-radius、--pod-nav-menu-gap；搜索、品牌区、分组和操作优先沿用平台已有的变量绑定，navigation 分组只声明本主题需要覆盖的差异。弹出菜单的底色、文字与搜索状态成组配套，导航与内容可以分别选择明暗。选中项通常沿用平台样式；仅需额外位置标记时才声明 --pod-nav-menu-item-selected-shadow，显式 none 用于有意关闭阴影。省略时不生成额外 box-shadow 规则；该 Token 独立于导航明暗。菜单高度、文字行高、内距和框架留白一起调整，给外阴影、长标题与键盘焦点留出空间。
 
-桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。
+桌面检查菜单、搜索、选中态与表单的协调；折叠后保留可识别图标和入口名称；窄屏保持菜单可展开、当前页面可定位、键盘焦点可见。提交、编辑、详情与自定义页都沿用这一导航设计。 当前模板使用 contentTone: dark、navTheme: dark。
 
 ### 2.3 页面标题与操作
 
@@ -304,7 +218,7 @@ iconSystem: {"library":"lucide-react","mappings":{}}
 
 在现有 `design.md` 的页面说明中写“页面、分割线样式、选择理由”，无需增加文档或必填机器字段。原生表单从 `yida-create-form-page/references/form-field-properties.md#divider` 的 23 个可见样式中选型，排除 `none`，通过 `Divider.dividerType` 配置；Canvas 按相同原则实现分组标题，不假定可直接使用平台 Divider 组件。Fast 与 Plan 均按页面选择。
 
-同一应用保持字体、间距和整体配色协调，差异主要来自分组形态与视觉轻重。平台主题模式使用品牌主色、随内容明暗变化的品牌弱背景和正文色；`dark-bar` 表示实底标题条，并非固定黑色。强色底需检查文字可读性，长标题和窄屏优先使用简单形态。内嵌椭圆、双色标签等分别检查外条、标题承载面与文字，见 [复合分割线](native-form-styles.md#内嵌标题与复合分割线)；不要因为整条的对比度通过就忽略内层浅字浅底或装饰抢占视觉的问题。已有页面的局部修改保持原样式，只有本次明确调整分组设计时才更换。
+同一应用保持字体、间距和整体配色协调，差异主要来自分组形态与视觉轻重。平台主题模式使用品牌主色、随内容明暗变化的品牌弱背景和正文色；`dark-bar` 表示实底标题条，并非固定黑色。强色底需检查文字可读性，长标题和窄屏优先使用简单形态。内嵌椭圆、双色标签等分别检查外条、标题承载面与文字，见 [复合分割线](../../../references/native-form-styles.md#内嵌标题与复合分割线)；不要因为整条的对比度通过就忽略内层浅字浅底或装饰抢占视觉的问题。已有页面的局部修改保持原样式，只有本次明确调整分组设计时才更换。
 
 ### 页面与导航连续性
 
@@ -351,20 +265,12 @@ loading/empty/error/无权限只替换内容区，保留导航和画布。快速
 
 ## 3. 基础组件表达
 
-<a id="component-button"></a>
-<a id="component-card"></a>
-<a id="component-chart"></a>
-<a id="state-empty"></a>
-<a id="state-loading"></a>
-<a id="state-selected"></a>
 ### 自定义页面组件与交互
 
 页面标题、筛选、主操作、状态摘要、列表、表格、图表、详情抽屉和表单入口按真实任务组合。标题与操作保持清楚的主次和对齐；列表、表格与图表使用稳定容器高度或自然增长规则；详情抽屉保留上下文并提供明确返回路径。默认、hover、active、focus、loading、empty、error、disabled 和 selected 状态使用同一套表面、边界、文字与状态语义。
 
 `YidaCodeCanvas` 页面在 `YidaComp` 内消费 --oyd-page-bg、--oyd-surface、--oyd-ink、--oyd-border、--oyd-accent、--oyd-radius、--oyd-content-width、--oyd-content-padding、--oyd-section-gap 和其他已声明 token。页面局部 CSS 只负责当前组件的布局和特色表达；应用全局样式统一作用于应用框架、表单、详情页和自定义页面等。
 
-<a id="component-input"></a>
-<a id="component-table"></a>
 ### 表单、表格与记录集合
 
 单行控件 40px、圆角 0px，边框 1px；字段 labelAlign=top（标签在字段上方）。多行文本、附件、日期范围、子表按自身布局。详情页沿用相同章节顺序与表面；只读字段的数据框使用 --pod-field-preview-bg-color、--pod-field-preview-border-radius、--pod-field-preview-shadow、--pod-field-preview-indicator-color、--pod-field-preview-text-color、--form-element-medium-font-size、--pod-field-preview-gap、--pod-field-preview-line-height、--pod-field-preview-min-height 和 --pod-field-preview-padding，延续应用的色彩、形状、字体与密度。表格保持紧凑，按钮、输入、浮层和导航消费同源色彩与形状。
@@ -373,9 +279,6 @@ loading/empty/error/无权限只替换内容区，保留导航和画布。快速
 
 表单支持在顶部、左侧、主体、右侧和字段之间放置分栏、Divider、图片/图形、Tab/切换、按钮组/操作入口、状态区和字段。各组件分别承担导航、操作、视觉焦点、反馈、层级、节奏、装饰或采集作用。普通业务分组和章节分隔使用 Divider，横向字段组合使用 ColumnContainer。form-layout.json 提供 6:6 空字段列，columnGap=12px、rowGap=12px、display=VERTICAL；按任务与容器宽度补充组件并调整布局。不因主题名称自动套 3:9，不重复已有标题，不用空泛文案凑版式。
 
-<a id="state-error"></a>
-<a id="state-disabled"></a>
-<a id="state-focus"></a>
 ### 组件状态
 
 默认/hover/focus 同时配置边界和表面；键盘焦点保持可见。错误、警告、禁用沿用平台独立语义，不能被通用强调色覆盖；不得以全局 input 或 .next-* 强制改所有控件。应用 CSS 配置表单、编辑和详情的视觉样式。
@@ -396,115 +299,15 @@ loading/empty/error/无权限只替换内容区，保留导航和画布。快速
 
 ## 5. 项目应用与调整规则
 
+YAML Token 是唯一数值源。沿用当前主题的构图与材质语言，按业务调整主色、字段分组及信息密度。
+
+逐页记录页面任务、首屏焦点、布局、组件、主操作、状态、响应式与验收。表单按第 3 节补充组件作用、列比例、标签、间距、窄屏重排和详情延续方式；在 form-layout.json 中填入真实字段与所需组件，并对照 design.md 验收。
+
+{{PAGE_APPLICATIONS}}
+
 ### 验收
 
 - [ ] 导航、应用框架、Canvas、表单与详情的字体、线条、材质和状态一致。
 - [ ] 正文与底栏对齐；四类容器与移动端无横向溢出。
 - [ ] 文字/焦点/禁用/错误在实际背景上可辨，长说明与表格未裁切。
 - [ ] 表单布局与逐页设计一致；组件、字段、主题和响应式规则均已核对。
-
-### 本项目实现边界
-
-本项目显式 Token 与页面决定优先于默认值；原生导航采用第二章的导航设计和导航差异 token 与平台默认绑定，自绘导航按本项目入口方案实施。导航、应用框架、表单、自定义页面与详情保持统一风格。业务内容、操作和数据来自 PRD，条件配方用于本项目已有内容。
-已确认约束：无额外约束。
-
-### 配色与语义
-
-本项目主色为 荧光终端绿 #22C55E；来源为 user_explicit。深色近黑画布（#0A0E0A 量级）为底，正文浅灰白（#D1D5DB）；荧光终端绿 #22C55E 用于提示符、主按钮、选中态与关键数值；琥珀 #F59E0B 作为次要强调（星标/警告）；品红/青色仅用于技术栈分类 chips 的低饱和变体。整体模拟 CRT 终端界面，避免大面积高饱和渐变
-
-| 语义 | 变量 | 最终取值 |
-| --- | --- | --- |
-| 主色与主要品牌操作 | --color-brand1-6 | #22C55E |
-| 品牌悬停 | --color-brand1-1 | #3DCC71 |
-| 品牌按下 | --color-brand1-9 | #1A9647 |
-| 品牌禁用 | --color-brand1-10 | #214B30 |
-| 页面画布 | --pod-page-bg-color | #0e1813 |
-| 内容容器 | --pod-card-bg-color | #15231a |
-| 独立浮层 | --color-fill1-5 | #1F2622 |
-| 弱图标与辅助操作 | --color-fill1-6 | var(--color-text1-3) |
-| Tooltip背景 | --color-fill1-10 | #262626 |
-| Tooltip前景 | --color-text1-5 | #FFFFFF |
-
-<a id="page-686f6d65"></a>
-### 首页 Hero
-
-- 页面任务：让访客 10 秒内理解开发者定位并进入作品或联系。。内容覆盖：定位层：Hero 打字机标题与一行自我定位 / 作品层：精选作品卡与入口按钮 / 能力层：技能矩阵与最新文章 / 转化层：联系入口与社交链接
-- 首屏焦点：CRT 终端窗口 Hero：打字机逐字输出标题与一行自我定位，绿色提示符与闪烁光标
-- 布局：顶部导航条 + 全宽 Hero（约 60vh）+ 精选作品 3 卡横排 + 技能矩阵 2×2 + 最新文章 3 行 + 页脚；区块间距 64px，最大内容宽 1200px 居中；页面模式 custom-page-pattern，信息密度 舒适：Hero 大留白，内容区块间距 64px。
-- 表面与组件：画布使用 --pod-page-bg-color（#0e1813），主容器使用 --pod-card-bg-color（#15231a），边界使用 --color-line1-1（#748179）。画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。；-用于-（-）；-用于-（-）
-- 主操作：[ ./view_projects ] 前往作品集（荧光绿实底或描边按钮）与 [ ./contact_me ] 次按钮
-- 状态：默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。
-- 响应式：≥1024 桌面三栏卡；768-1023 两栏；<768 单栏堆叠，Hero 高度自适应内容
-- 验收：打字机动效首帧即有内容（无长时间空白）；精选作品区显示至少 1 条来自作品表单的真实数据；所有按钮文字不折行（white-space:nowrap + flex-shrink:0）
-
-<a id="page-70726f6a65637473"></a>
-### 作品集
-
-- 页面任务：访客按分类浏览、筛选并了解每个作品的详情与链接。。内容覆盖：筛选层：分类 chips 与当前选中态 / 内容层：作品卡片网格 / 行动层：卡片内 demo/repo 链接按钮 / 空态层：无数据时的终端提示
-- 首屏焦点：$ ls ./projects 标题 + 分类筛选 chips + 首行作品卡
-- 布局：页头 + chips 行 + 作品卡片网格（桌面 3 列/平板 2 列/手机 1 刭）+ 空态与页脚；页面模式 custom-page-pattern，信息密度 紧凑偏舒适：卡片信息密度高但留白规则统一。
-- 表面与组件：画布使用 --pod-page-bg-color（#0e1813），主容器使用 --pod-card-bg-color（#15231a），边界使用 --color-line1-1（#748179）。画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。；-用于-（-）；-用于-（-）
-- 主操作：卡片内 [ demo ] / [ repo ] 链接按钮；chips 点击筛选
-- 状态：默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。
-- 响应式：网格列数随断点变化；chips 行可横向滚动不折行
-- 验收：读取作品表单真实数据并渲染卡片，非空数据源时显示至少 1 张卡；分类筛选即时生效；空态有终端风格提示文案；卡片按钮文字不折行
-
-<a id="page-61626f7574"></a>
-### 关于我
-
-- 页面任务：访客了解开发者的经历、技能栈与个人特质。。内容覆盖：身份层：NAME/SYNOPSIS 自我介绍 / 经历层：git log 时间线 / 能力层：技能分组与熟练度 / 转化层：联系引导按钮
-- 首屏焦点：man page 风格介绍卡（NAME/SYNOPSIS/DESCRIPTION）
-- 布局：两栏：左介绍卡 + 右 git log 风格经历时间线；下方技能分组 chips；窄屏纵向堆叠；页面模式 custom-page-pattern，信息密度 舒适。
-- 表面与组件：画布使用 --pod-page-bg-color（#0e1813），主容器使用 --pod-card-bg-color（#15231a），边界使用 --color-line1-1（#748179）。画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。；-用于-（-）；-用于-（-）
-- 主操作：底部 [ ./contact_me ] 引导按钮
-- 状态：默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。
-- 响应式：≥1024 两栏，<1024 单栏
-- 验收：man page 章节结构清晰可读；时间线节点与年份对齐；按钮文字不折行
-
-<a id="page-636f6e74616374"></a>
-### 联系页
-
-- 页面任务：访客提交合作/招聘/咨询留言。。内容覆盖：信息层：联系方式 key: value 输出 / 行动层：留言主按钮与表单抽屉 / 氛围层：PING 状态栏动效
-- 首屏焦点：$ ping -c 1 dev.local 标题 + 联系方式终端输出卡 + [ ./send_message ] 主按钮
-- 布局：两栏：左联系方式卡（key: value 行）+ 右留言引导卡；窄屏纵向堆叠；页面模式 custom-page-pattern，信息密度 舒适。
-- 表面与组件：画布使用 --pod-page-bg-color（#0e1813），主容器使用 --pod-card-bg-color（#15231a），边界使用 --color-line1-1（#748179）。画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。；-用于-（-）；-用于-（-）
-- 主操作：[ ./send_message ] 唤起 FormOpenContainer 抽屉提交联系留言表单
-- 状态：默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。
-- 响应式：≥1024 两栏，<1024 单栏
-- 验收：点击按钮成功打开表单抽屉并可提交；页面顶部 PING 状态栏动效不阻塞交互；按钮文字不折行
-
-<a id="page-6e6f74666f756e64"></a>
-### 404 页
-
-- 页面任务：以风格化方式提示页面不存在并引导返回首页。。内容覆盖：提示层：404 数字与 command not found / 氛围层：伪错误日志 / 行动层：返回首页按钮
-- 首屏焦点：居中终端窗口：bash: page_not_found: command not found + 像素 404 数字
-- 布局：整页居中单个终端窗口（max-width 640px）；页面模式 custom-page-pattern，信息密度 宽松。
-- 表面与组件：画布使用 --pod-page-bg-color（#0e1813），主容器使用 --pod-card-bg-color（#15231a），边界使用 --color-line1-1（#748179）。画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。；-用于-（-）；-用于-（-）
-- 主操作：[ cd ~/home ] 返回首页按钮
-- 状态：默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。
-- 响应式：窗口宽度自适应，窄屏占满减 32px 边距
-- 验收：404 数字用像素方块清晰可辨；返回按钮可跳转首页；按钮文字不折行
-
-<a id="page-7265706f7274"></a>
-### 数据报表
-
-- 页面任务：开发者查看留言量、留言类型分布与作品分类统计。。内容覆盖：指标层：总量与关键计数 / 分布层：分类与状态图表 / 趋势层：留言提交趋势
-- 首屏焦点：顶部一行终端风指标卡（作品总数/文章总数/留言总数），荧光绿关键数值
-- 布局：概览指标卡一行 + 留言统计与作品统计两个图表区，区块标题用 $ 前缀命令样式；最大内容宽 1200px 居中；页面模式 custom-page-pattern，信息密度 紧凑。
-- 表面与组件：画布使用 --pod-page-bg-color（#0e1813），主容器使用 --pod-card-bg-color（#15231a），边界使用 --color-line1-1（#748179）。画布、容器、边框、圆角与阴影按项目设计系统执行，不另写页面级标准。；终端指标卡用于概览指标区（指标卡沿用终端 key: value 输出样式，数值荧光绿）
-- 主操作：图表区可按需联动筛选（如平台支持）
-- 状态：默认、悬停、按下、聚焦、禁用、加载、空态、错误、无权限和选中状态按项目设计系统执行。
-- 响应式：≥1024 两栏图表并排；<1024 单栏堆叠；指标卡窄屏 2 刭换行
-- 验收：指标数值来自真实表单数据，非全 0；图表在深色底上可读，坐标文字不为纯黑；按钮与标签文字不折行
-
-### 素材与实现验收
-
-- home：none；无图片槽位。；素材槽位 无
-- projects：none；无图片槽位。；素材槽位 无
-- about：none；无图片槽位。；素材槽位 无
-- contact：none；无图片槽位。；素材槽位 无
-- notfound：none；无图片槽位。；素材槽位 无
-- report：none；无图片槽位。；素材槽位 无
-素材缺口：无。
-- 验证页面任务、首屏焦点、布局和窄屏顺序与逐页方案一致；条件配方只出现在已注明的位置。
-- 验证表面层级、操作与文字对比、键盘焦点、空态和错误反馈；数据几何、单位和读数须与真实数据一致。

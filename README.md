@@ -163,6 +163,18 @@ openyida/
 
 For a user-facing list of supported features and matching CLI commands, see [OpenYida 功能完整列表](https://demo.aliwork.com/o/openyida/helpCenter?openyidaPath=capabilities).
 
+### Style Selection and Optional Previews
+
+Only show reference previews when the user explicitly requests them. Style choices use the host's supported ask_human tool on every platform.
+
+```bash
+openyida sample yida-design theme-preview --theme-ids app-sage,app-teal,app-terminal,app-platinum --output .cache/theme-preview.html --json
+```
+
+This creates a read-only HTML gallery of all requested themes: titles and images only, four to six columns on desktop, fewer on narrow screens, with no row limit. It has no selection controls and refuses to overwrite existing files. Open it with the host's preview tools; raw HTML is not guaranteed to render in chat. QwenWork may alternatively prepare the same read-only template with `sample yida-design theme-selector --json` and pass its returned relative `widget_path` to `qoder_show_widget`. Neither preview path submits a choice.
+
+Ready style questions join the same ask_human call as other necessary questions; split only for dependencies or host limits. Pop art is omitted unless explicitly requested or the primary task is showcase-oriented. Previewing app-pop requires --pop-art-context explicit-request or showcase, based on that evidence.
+
 ### Application and Form Management
 
 ```bash
@@ -403,7 +415,9 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida design-plan preview <build-plan.json> --part-file <module.json> [--json]` | Update plan drafts by module |
 | `openyida design-plan materialize <build-plan.json> [--from-preview \| --business-file <json> --visual-file <json>] [--output-dir <dir>] [--rebase-parts] [--check] [--json]` | Generate or update plan documents and theme with consistency checks |
 | `openyida design-plan patch <build-plan.json> --set <path=value> [--set <path=value> ...] [--materialize] [--output-dir <dir>] [--json]` | Patch plan fields and optionally sync documents and theme |
-| `openyida update-app <appType> [--name "..."] [--desc "..."] [--icon <name>] [--icon-color <color>] [--colour <key>] [--theme-color <color>] [--theme-file <css>] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | Update app info |
+| `openyida update-app <appType> [--name "..."] [--desc "..."] [--icon <name>] [--icon-color <color>] [--colour <key>] [--theme-color <color>] [--theme-file <css>] [--confirm-legacy-app-style] [--disable-custom-theme] [--nav-theme light\|dark\|white\|gray] [--logo-source appIcon\|customImage] [--layout side\|top\|l_shape] [--hide-app-nav\|--show-app-nav]` | Update app info |
+| `openyida app-theme snapshot <appType> --output-dir <new-dir> [--json]` | Archive application theme settings and CSS (read-only) |
+| `openyida app-theme restore <appType> --snapshot <before.json> --expected-current <after.json> [--check \| --confirm --output-dir <new-dir>] [--json]` | Check or restore an application theme snapshot (supported exact values only) |
 | `openyida upgrade-app-theme <appType> --explicit-request [--confirm \| --prepare --output-dir <dir>] [--json]` | Upgrade an AI-built legacy app theme (explicit request and ask_human confirmation required) |
 | `openyida app-online <appType> [--to-ding-app-center] [--show-app-center]` | Enable a Yida app |
 | `openyida app-offline <appType> [--to-ding-app-center] [--show-app-center]` | Disable a Yida app |
@@ -526,7 +540,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
 | `openyida copy [--force]` | Copy project working directory |
-| `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--style-id <themeId\|free-creative>]` | Output code samples/templates |
+| `openyida sample [--list] [<skill> <name>] [--output <file-or-directory>] [--var KEY=VALUE ...] [--design-file <design.md>] [--style-id <themeId\|free-creative>] [--theme-ids <id,...>] [--pop-art-context <explicit-request\|showcase>]` | Output code samples/templates |
 | `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
 | `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
